@@ -1,9 +1,10 @@
 #include "camera.h"
+#include "consts.h"
 
     Camera::Camera() ://default constructor
         worldpos(glm::vec3(3.f, 6.f, 15.f)),
         rotation(glm::vec2(0.f, 0.f)),
-        projection(glm::perspective(glm::radians(80.), 4./3., 0.1, 100.)),
+        projection(glm::perspective(glm::radians(80.), (double)WINDOW_WIDTH/WINDOW_HEIGHT, 0.1, 100.)),
         view(glm::mat4(1.f))
         {
             initKeyboard();
