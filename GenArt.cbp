@@ -22,6 +22,7 @@
 					<Add library="opengl32" />
 					<Add library="gdi32" />
 					<Add library="glew32" />
+					<Add library="lib/libassimp.dll.a" />
 					<Add directory="lib" />
 				</Linker>
 			</Target>
@@ -31,20 +32,34 @@
 			<Add option="-fexceptions" />
 		</Compiler>
 		<Unit filename="include/camera.h" />
+		<Unit filename="include/consts.h" />
+		<Unit filename="include/cylinder.h" />
 		<Unit filename="include/globals.h" />
-		<Unit filename="include/input.h" />
-		<Unit filename="include/painting.h" />
-		<Unit filename="include/shader_util.h" />
+		<Unit filename="include/simplepainting.h" />
 		<Unit filename="include/testpaintings.h" />
+		<Unit filename="shaders/bad_noise_pattern.frag.glsl" />
 		<Unit filename="shaders/basic.frag.glsl" />
 		<Unit filename="shaders/basic.vert.glsl" />
 		<Unit filename="shaders/bluepainting.frag.glsl" />
+		<Unit filename="shaders/boringsines.frag.glsl" />
+		<Unit filename="shaders/canvas.frag.glsl" />
+		<Unit filename="shaders/cyl.frag.glsl" />
+		<Unit filename="shaders/cyl.vert.glsl" />
+		<Unit filename="shaders/dotclock.frag.glsl" />
+		<Unit filename="shaders/gears.frag.glsl" />
+		<Unit filename="shaders/ojgreen.frag.glsl" />
+		<Unit filename="shaders/psychconcentric.frag.glsl" />
+		<Unit filename="shaders/pulsingcircles.frag.glsl" />
+		<Unit filename="shaders/rainy.frag.glsl" />
 		<Unit filename="shaders/redpainting.frag.glsl" />
+		<Unit filename="shaders/trigonometric_modulus.frag.glsl" />
 		<Unit filename="src/camera.cpp" />
+		<Unit filename="src/cylinder.cpp" />
 		<Unit filename="src/globals.cpp" />
 		<Unit filename="src/input.cpp" />
 		<Unit filename="src/main.cpp" />
 		<Unit filename="src/shader_util.cpp" />
+		<Unit filename="src/simplepainting.cpp" />
 		<Unit filename="src/testpaintings.cpp" />
 		<Extensions>
 			<code_completion />
