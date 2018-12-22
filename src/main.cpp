@@ -21,6 +21,7 @@
 #include "camera.h"
 #include "cylinder.h"
 #include "halfsphere.h"
+#include "geometry.h"
 
 // so far i've only added to this globals header globals which need to be visible across multiple files:
 // keyboard and cam
@@ -32,7 +33,7 @@ using std::make_unique;
 
 //our globals
 shader_prog basicshader("shaders/basic.vert.glsl", "shaders/basic.frag.glsl");
-GLuint floorVAO, paintingVAO, cylinderVAO, domeVAO;
+GLuint floorVAO, paintingVAO;
 
 // all functions defined in main.cpp... it's ugly but i'm ok with it //
 GLuint createQuad(glm::vec3 color, float s);
@@ -62,7 +63,7 @@ vector<unique_ptr<Painting>> makePaintings() {
     vector<unique_ptr<Painting>> vec;
     vec.reserve(30);//should be enough to avoid resizing
 
-    for (int i = 0; i < fragshaders.size(); i++) {
+    for (unsigned int i = 0; i < fragshaders.size(); i++) {
         auto p = make_unique<SimplePainting>("shaders/basic.vert.glsl",fragshaders[i]);
         p->position = glm::vec3(-80.f+i*40, 10.f, -30.f);
         vec.push_back(std::move(p));
@@ -75,8 +76,6 @@ vector<unique_ptr<Painting>> makePaintings() {
 void initGeom() {
     floorVAO = createQuad(glm::vec3(0.22, 0.22, 0.22), 50);
     paintingVAO = createQuad(glm::vec3(0.50, 0.50, 0.50), 15);
-    cylinderVAO = importMesh("data/cylinder.obj");
-    domeVAO = importMesh("data/halfsphere.obj");
 }
 
 GLuint createQuad(glm::vec3 color, float s) {
@@ -138,98 +137,6 @@ GLuint createQuad(glm::vec3 color, float s) {
 }
 
 
-GLuint importMesh( const std::string& pFile ) {
-    Assimp::Importer importer;
-
-    const aiScene *scene = importer.ReadFile(pFile,
-        aiProcess_CalcTangentSpace       |
-        aiProcess_Triangulate            |
-        aiProcess_JoinIdenticalVertices  |
-        aiProcess_SortByPType);
-
-    if (!scene){
-        printf("Error importing a file: %s\n", importer.GetErrorString());
-        return 0;
-    }
-
-    printf("Loaded mesh: %s \n", scene->mMeshes[0][0].mName.C_Str());
-
-    aiMesh *imported = scene->mMeshes[0];
-    printf("number of vertices: %d, number of faces: %d\n", imported->mNumVertices, imported->mNumFaces);
-
-
-    ////////////////////////////////////
-
-    std::vector<GLfloat> vertexdata;
-    vertexdata.reserve(imported->mNumVertices * 5);
-    std::vector<GLuint> indices;
-
-    for (int i = 0; i < imported->mNumVertices; i++) {
-        vertexdata.push_back(imported->mVertices[i].x * 50);
-        vertexdata.push_back(imported->mVertices[i].y * 50);
-        vertexdata.push_back(imported->mVertices[i].z * 50);
-        vertexdata.push_back(imported->mTextureCoords[0][i].x);
-        vertexdata.push_back(imported->mTextureCoords[0][i].y);
-        vertexdata.push_back(imported->mNormals[i].x);
-        vertexdata.push_back(imported->mNormals[i].y);
-        vertexdata.push_back(imported->mNormals[i].z);
-
-    }
-    // we know its triangles
-    for (unsigned int i = 0; i < imported->mNumFaces; i++) {
-        for (int j = 0; j < imported->mFaces[i].mNumIndices; j++){
-            indices.push_back((GLuint)imported->mFaces[i].mIndices[j]);
-        }
-    }
-
-    GLuint vertexArrayHandle;
-    glGenVertexArrays(1, &vertexArrayHandle);
-    glBindVertexArray(vertexArrayHandle);
-
-    GLuint vboHandle;
-    glGenBuffers(1, &vboHandle);
-    glBindBuffer(GL_ARRAY_BUFFER, vboHandle);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)*vertexdata.size(), &vertexdata[0], GL_STATIC_DRAW);
-
-    glEnableVertexAttribArray(VERTEX_POSITION_LOC);
-    //indexes are defined inside the vertex shader itself with layout specification
-    glVertexAttribPointer(
-        VERTEX_POSITION_LOC,
-        3,                 // number of elements per vertex, here
-        GL_FLOAT,          // the type of each element
-        GL_FALSE,          // take our values as-is
-        8*sizeof(GLfloat),
-        (const GLvoid*)(0*sizeof(GLfloat))                  // offset of first element
-    );
-
-    //vx, vy, vz, u, v, nx, ny, nz
-    glEnableVertexAttribArray(NORMAL_LOC);
-    glVertexAttribPointer(
-        NORMAL_LOC,
-        3,                 // number of elements per vertex, here
-        GL_FLOAT,          // the type of each element
-        GL_FALSE,          // take our values as-is
-        8*sizeof(GLfloat),
-        (const GLvoid*)(5*sizeof(GLfloat))                  // offset of first element
-    );
-
-    glEnableVertexAttribArray(UV_LOC);
-    glVertexAttribPointer(
-        UV_LOC,
-        2,
-        GL_FLOAT,
-        GL_FALSE,
-        8*sizeof(GLfloat),
-        (const GLvoid*)(3*sizeof(GLfloat))
-    );
-
-    glGenBuffers(1, &vboHandle);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vboHandle);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLfloat)*indices.size(), &indices[0], GL_STATIC_DRAW);
-    return vertexArrayHandle;
-}
-
-//probably replace this by a container with all non-special geometry to be drawn later(clear out separate global geometry VAOS)
 void drawWorld() {
     basicshader.begin();
     basicshader.uniformMatrix4fv("viewMatrix", cam.view);
@@ -290,13 +197,10 @@ int main(int argc, char *argv[]) {
     auto paintings = makePaintings();
     double currentTime, dt, lastTime = 0;
 
-    /* auto cylshader = make_unique<Cylinder>(); */
-    /* cylshader->position = glm::vec3(0.f, 10.f, 30.f); */
-    /* cylshader->angle = 90.; */
-
-    auto dome = make_unique<HalfSphere>();
-    dome->position = glm::vec3(0.f, 30.f, 20.f);
-    dome->angle = 0.;
+    auto dome = make_unique<Geometry>("data/halfsphere.obj", "shaders/dome.vert.glsl", "shaders/basic.frag.glsl");
+    dome->setPos(glm::vec3(0.f, 30.f, 20.f));
+    dome->setAngle(0.f);
+    dome->setScale(20.f);
 
 
 
@@ -315,8 +219,7 @@ int main(int argc, char *argv[]) {
             p->render(paintingVAO);
         }
 
-        /* cylshader->render(cylinderVAO); */
-        dome->render(domeVAO);
+        dome->render();
 
 
         glfwSwapBuffers(win);
@@ -330,3 +233,4 @@ int main(int argc, char *argv[]) {
 
     return 0;
 }
+
