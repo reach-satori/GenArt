@@ -170,6 +170,9 @@ GLuint importMesh( const std::string& pFile ) {
         vertexdata.push_back(imported->mVertices[i].z * 50);
         vertexdata.push_back(imported->mTextureCoords[0][i].x);
         vertexdata.push_back(imported->mTextureCoords[0][i].y);
+        vertexdata.push_back(imported->mNormals[i].x);
+        vertexdata.push_back(imported->mNormals[i].y);
+        vertexdata.push_back(imported->mNormals[i].z);
 
     }
     // we know its triangles
@@ -195,8 +198,19 @@ GLuint importMesh( const std::string& pFile ) {
         3,                 // number of elements per vertex, here
         GL_FLOAT,          // the type of each element
         GL_FALSE,          // take our values as-is
-        5*sizeof(GLfloat),
+        8*sizeof(GLfloat),
         (const GLvoid*)(0*sizeof(GLfloat))                  // offset of first element
+    );
+
+    //vx, vy, vz, u, v, nx, ny, nz
+    glEnableVertexAttribArray(NORMAL_LOC);
+    glVertexAttribPointer(
+        NORMAL_LOC,
+        3,                 // number of elements per vertex, here
+        GL_FLOAT,          // the type of each element
+        GL_FALSE,          // take our values as-is
+        8*sizeof(GLfloat),
+        (const GLvoid*)(5*sizeof(GLfloat))                  // offset of first element
     );
 
     glEnableVertexAttribArray(UV_LOC);
@@ -205,7 +219,7 @@ GLuint importMesh( const std::string& pFile ) {
         2,
         GL_FLOAT,
         GL_FALSE,
-        5*sizeof(GLfloat),
+        8*sizeof(GLfloat),
         (const GLvoid*)(3*sizeof(GLfloat))
     );
 
