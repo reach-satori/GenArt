@@ -20,6 +20,7 @@
 #include "input.h"
 #include "camera.h"
 #include "cylinder.h"
+#include "halfsphere.h"
 
 // so far i've only added to this globals header globals which need to be visible across multiple files:
 // keyboard and cam
@@ -31,7 +32,7 @@ using std::make_unique;
 
 //our globals
 shader_prog basicshader("shaders/basic.vert.glsl", "shaders/basic.frag.glsl");
-GLuint floorVAO, paintingVAO, cylinderVAO;
+GLuint floorVAO, paintingVAO, cylinderVAO, domeVAO;
 
 // all functions defined in main.cpp... it's ugly but i'm ok with it //
 GLuint createQuad(glm::vec3 color, float s);
@@ -75,7 +76,7 @@ void initGeom() {
     floorVAO = createQuad(glm::vec3(0.22, 0.22, 0.22), 50);
     paintingVAO = createQuad(glm::vec3(0.50, 0.50, 0.50), 15);
     cylinderVAO = importMesh("data/cylinder.obj");
-
+    domeVAO = importMesh("data/halfsphere.obj");
 }
 
 GLuint createQuad(glm::vec3 color, float s) {
@@ -159,15 +160,14 @@ GLuint importMesh( const std::string& pFile ) {
 
     ////////////////////////////////////
 
-    float s = 10.f;
     std::vector<GLfloat> vertexdata;
     vertexdata.reserve(imported->mNumVertices * 5);
-    std::vector<GLubyte> indices;
+    std::vector<GLuint> indices;
 
     for (int i = 0; i < imported->mNumVertices; i++) {
-        vertexdata.push_back(imported->mVertices[i].x * 20);
-        vertexdata.push_back(imported->mVertices[i].y * 20);
-        vertexdata.push_back(imported->mVertices[i].z * 20);
+        vertexdata.push_back(imported->mVertices[i].x * 50);
+        vertexdata.push_back(imported->mVertices[i].y * 50);
+        vertexdata.push_back(imported->mVertices[i].z * 50);
         vertexdata.push_back(imported->mTextureCoords[0][i].x);
         vertexdata.push_back(imported->mTextureCoords[0][i].y);
 
@@ -276,9 +276,14 @@ int main(int argc, char *argv[]) {
     auto paintings = makePaintings();
     double currentTime, dt, lastTime = 0;
 
-    auto cylshader = make_unique<Cylinder>();
-    cylshader->position = glm::vec3(0.f, 10.f, 30.f);
-    cylshader->angle = 90.;
+    /* auto cylshader = make_unique<Cylinder>(); */
+    /* cylshader->position = glm::vec3(0.f, 10.f, 30.f); */
+    /* cylshader->angle = 90.; */
+
+    auto dome = make_unique<HalfSphere>();
+    dome->position = glm::vec3(0.f, 30.f, 20.f);
+    dome->angle = 0.;
+
 
 
     while (!glfwWindowShouldClose(win)) {
@@ -296,7 +301,8 @@ int main(int argc, char *argv[]) {
             p->render(paintingVAO);
         }
 
-        cylshader->render(cylinderVAO);
+        /* cylshader->render(cylinderVAO); */
+        dome->render(domeVAO);
 
 
         glfwSwapBuffers(win);

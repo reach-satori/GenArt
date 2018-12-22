@@ -1,11 +1,10 @@
-
-#include "cylinder.h"
+#include "halfsphere.h"
 #include "consts.h"
 #include <stack>
 
-Cylinder::Cylinder() :
+HalfSphere::HalfSphere() :
     // calls the base class constructor: this is the important part: change your shaders here
-    Painting(shader_prog("shaders/cyl.vert.glsl", "shaders/boringsines.frag.glsl"))
+    Painting(shader_prog("shaders/dome.vert.glsl", "shaders/basic.frag.glsl"))
     {
         /////////////
         //this setup call MUST be inside the derived class constructor:
@@ -21,7 +20,7 @@ Cylinder::Cylinder() :
         pshader.end();
     };
 
-void Cylinder::render(GLuint VAO) {
+void HalfSphere::render(GLuint VAO) {
     std::stack<glm::mat4> ms;
     ms.push(glm::mat4(1.0));
 
@@ -36,10 +35,13 @@ void Cylinder::render(GLuint VAO) {
     ms.push(ms.top());
         ms.top() = glm::translate(ms.top(), position);
         ms.top() = glm::rotate(ms.top(), glm::radians(angle), glm::vec3(0., 1., 0.));
+        ms.top() = glm::rotate(ms.top(), glm::radians(-90.f), glm::vec3(1., 0., 0.));
         //maybe we can even set up the modelMatrix only once in constructor as well if they don't move around
         pshader.uniformMatrix4fv("modelMatrix", ms.top());
+        glDisable(GL_CULL_FACE);
         glBindVertexArray(VAO);
-        glDrawElements(GL_TRIANGLES, 192, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, 480 * 6, GL_UNSIGNED_INT, 0);
+        glEnable(GL_CULL_FACE);
     ms.pop();
     pshader.end();
 };
